@@ -42,6 +42,7 @@ class DocumentData:
 
     def to_metadata_dict(self) -> dict:
         return {
+            "doc_id": self.doc_id,
             "kategorie": self.kategorie,
             "nazev": self.nazev,
             "cj_zn": self.cj_zn,
