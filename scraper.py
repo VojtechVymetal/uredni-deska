@@ -120,16 +120,14 @@ def _parse_detail_page(html_content: str, doc_id: str) -> DocumentData:
                 doc.poznamka = value
             elif "zdroj" in label:
                 doc.zdroj = value
-            elif "dokument" in label:
-                doc.attachments = _parse_attachments(value_el, doc_id)
 
+    doc.attachments = _parse_attachments(soup, doc_id)
     return doc
 
 
-def _parse_attachments(cell_element, doc_id: str) -> list[AttachmentData]:
+def _parse_attachments(soup, doc_id: str) -> list[AttachmentData]:
     attachments = []
-    links = cell_element.find_all("a", href=True)
-    full_text = cell_element.get_text(strip=True)
+    links = soup.find_all('a', class_='soubor_odkaz')
 
     for link in links:
         href = link.get("href", "")
@@ -147,15 +145,25 @@ def _parse_attachments(cell_element, doc_id: str) -> list[AttachmentData]:
         file_id_match = re.search(r"filepri=([^&]+)", href)
         if file_id_match:
             att.file_id = file_id_match.group(1)
+            
+        # Velikost
+        parent = link.parent
+        if parent:
+            size_span = parent.find('span', class_='soubor_velikost')
+            if size_span:
+                size_match = re.search(r'\((.*?)\)', size_span.get_text())
+                if size_match:
+                    att.file_size = size_match.group(1).strip()
+        
+        # Popis
+        container = parent.parent if parent else None
+        if container and container.name == 'td':
+            desc_div = container.find('div', class_='soubor_poznamka_div')
+            if desc_div:
+                att.file_description = desc_div.get_text(strip=True)
 
         attachments.append(att)
 
-    size_matches = re.findall(r'\((\d+[\s,.]?\d*\s*(?:KB|MB|GB|B))\)', full_text, re.IGNORECASE)
-    for i, size in enumerate(size_matches):
-        if i < len(attachments):
-            attachments[i].file_size = size.strip()
-
-    # Velmi primitivní extrakce popisu pro BS4, jelikož struktura uzlů je těžko predikovatelná
     return attachments
 
 
