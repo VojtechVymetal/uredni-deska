@@ -283,22 +283,33 @@ def api_weekly_summary():
         cached_res = client.table("weekly_summaries").select("*").eq("week_start", ws_str).execute()
         if cached_res.data:
             cached = cached_res.data[0]
-            return jsonify({
-                "summary": cached["summary_text"],
-                "doc_ids": cached.get("doc_ids", []),
-                "week_start": ws_str,
-                "week_end": we_str,
-                "cost_czk": float(cached["cost_czk"]),
-                "prompt_tokens": cached["prompt_tokens"],
-                "completion_tokens": cached["completion_tokens"],
-                "model": cached["model"],
-                "generated_at": cached["created_at"],
-                "cached": True,
-            })
+            # Add a secret bypass to force regenerate if ?force=1 is passed
+            if request.args.get('force') != '1':
+                return jsonify({
+                    "summary": cached["summary_text"],
+                    "doc_ids": cached.get("doc_ids", []),
+                    "week_start": ws_str,
+                    "week_end": we_str,
+                    "cost_czk": float(cached["cost_czk"]),
+                    "prompt_tokens": cached["prompt_tokens"],
+                    "completion_tokens": cached["completion_tokens"],
+                    "model": cached["model"],
+                    "generated_at": cached["created_at"],
+                    "cached": True,
+                })
 
         # Generate (For Vercel this should technically be moved to cron, but we keep it here for fallback)
-        notable_res = client.table("document_analyses").select("doc_id, severity, summary, documents!inner(first_seen_at, nazev, kategorie)").neq("severity", "Běžný").gte("documents.first_seen_at", ws_str).lt("documents.first_seen_at", we_str).execute()
-        notable_docs = notable_res.data
+        notable_res = client.table("document_analyses").select("doc_id, severity, summary, documents!inner(first_seen_at, nazev, kategorie, vyveseni_dne)").neq("severity", "Běžný").execute()
+        all_notable = notable_res.data
+        
+        notable_docs = []
+        for d in all_notable:
+            doc = d.get("documents", {})
+            fs = doc.get("first_seen_at", "")[:10]
+            vd = _parse_czech_date(doc.get("vyveseni_dne"))
+            
+            if (ws_str <= fs < we_str) or (vd and ws_str <= vd < we_str):
+                notable_docs.append(d)
         
         if not notable_docs:
             summary_text = "Tento týden nebyly zaznamenány žádné dokumenty vyžadující zvláštní pozornost."
