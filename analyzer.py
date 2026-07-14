@@ -235,6 +235,11 @@ def analyze_document(client: Client, doc_id: str, force: bool = False):
             "model": ai_result["model"]
         })
         logger.info("Analýza %s dokončena: %s (%.4f Kč)", doc_id, ai_result["severity"], ai_result["cost_czk"])
+        
+        # Odeslání Push Notifikací
+        if ai_result["severity"] in ["Vyžaduje pozornost", "Závažné"]:
+            _send_push_notifications(client, doc, ai_result)
+            
     except Exception as e:
         logger.error("Chyba AI analýzy dokumentu %s: %s", doc_id, e)
         db.upsert_analysis(client, {
@@ -247,6 +252,46 @@ def analyze_document(client: Client, doc_id: str, force: bool = False):
             "cost_czk": 0.0,
             "model": None,
         })
+
+
+def _send_push_notifications(client: Client, doc: dict, ai_result: dict):
+    try:
+        from pywebpush import webpush, WebPushException
+        import json
+        import os
+        
+        vapid_private_key = os.environ.get("VAPID_PRIVATE_KEY")
+        if not vapid_private_key: return
+        
+        subs_res = client.table("push_subscriptions").select("*").execute()
+        if not subs_res.data: return
+        
+        payload = json.dumps({
+            "title": f"Nový dokument ({ai_result['severity']})",
+            "body": doc.get("nazev", "Bez názvu"),
+            "url": f"https://uredni-deska-five.vercel.app/?doc={doc.get('doc_id')}"
+        })
+        
+        for sub in subs_res.data:
+            try:
+                webpush(
+                    subscription_info={
+                        "endpoint": sub["endpoint"],
+                        "keys": {
+                            "p256dh": sub["p256dh"],
+                            "auth": sub["auth"]
+                        }
+                    },
+                    data=payload,
+                    vapid_private_key=vapid_private_key,
+                    vapid_claims={"sub": "mailto:info@uredni-deska-five.vercel.app"}
+                )
+            except WebPushException as ex:
+                logger.error("WebPush selhal pro endpoint %s: %s", sub["endpoint"], repr(ex))
+                if ex.response and ex.response.status_code in [404, 410]:
+                    client.table("push_subscriptions").delete().eq("id", sub["id"]).execute()
+    except Exception as e:
+        logger.error("Chyba při odesílání push notifikací: %s", e)
 
 
 def analyze_all_pending(client: Client, batch_size: int = 5) -> int:

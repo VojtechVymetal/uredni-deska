@@ -111,3 +111,84 @@ def run_scrape():
         return jsonify({"status": "ok", "run_id": run_id, "stats": stats})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cron/daily-emails', methods=['GET', 'POST'])
+def run_daily_emails():
+    """
+    Cron pro rozesílání e-mailů pomocí Resend API.
+    """
+    auth_header = request.headers.get("Authorization")
+    if auth_header != f"Bearer {CRON_SECRET}" and request.args.get("key") != CRON_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    resend_key = os.environ.get("RESEND_API_KEY")
+    if not resend_key:
+        return jsonify({"error": "RESEND_API_KEY not set"}), 500
+        
+    client = db.get_client()
+    try:
+        from datetime import datetime, timedelta
+        import requests
+        
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+        ws_str = yesterday.isoformat()
+        
+        # Get docs from last 24h
+        new_docs_res = client.table("document_analyses").select("doc_id, severity, summary, documents!inner(nazev, kategorie, cj_zn)").gte("documents.first_seen_at", ws_str).execute()
+        docs = new_docs_res.data
+        if not docs:
+            return jsonify({"status": "ok", "message": "No new documents in the last 24 hours."})
+            
+        subs_res = client.table("email_subscriptions").select("*").eq("is_active", True).execute()
+        subs = subs_res.data
+        if not subs:
+            return jsonify({"status": "ok", "message": "No active subscribers."})
+            
+        emails_sent = 0
+        for sub in subs:
+            filtered_docs = []
+            for d in docs:
+                doc = d.get("documents", {})
+                cat = doc.get("kategorie")
+                sev = d.get("severity")
+                
+                # Check category
+                cat_match = (not sub["categories"]) or ("all" in sub["categories"]) or (cat in sub["categories"])
+                # Check severity
+                sev_match = (not sub["severities"]) or ("all" in sub["severities"]) or (sev in sub["severities"])
+                
+                if cat_match and sev_match:
+                    filtered_docs.append(d)
+                    
+            if filtered_docs:
+                # Compose email
+                html = "<h2>Denní přehled - Úřední deska Opava</h2><ul>"
+                for fd in filtered_docs:
+                    doc = fd.get("documents", {})
+                    html += f"<li><b>{doc.get('nazev')}</b> ({doc.get('kategorie')})<br><i>AI: {fd.get('summary')}</i><br><a href='https://uredni-deska-five.vercel.app/?doc={fd.get('doc_id')}'>Detail dokumentu</a></li><br>"
+                html += "</ul>"
+                html += f"<hr><p><a href='https://uredni-deska-five.vercel.app/api/unsubscribe?token={sub['unsubscribe_token']}'>Odhlásit se z odběru</a></p>"
+                
+                payload = {
+                    "from": "onboarding@resend.dev",
+                    "to": sub["email"],
+                    "subject": "Novinky na Úřední desce",
+                    "html": html
+                }
+                
+                r = requests.post(
+                    "https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                    json=payload
+                )
+                if r.status_code < 300:
+                    emails_sent += 1
+                else:
+                    logger.error("Failed to send email to %s: %s", sub["email"], r.text)
+                    
+        return jsonify({"status": "ok", "sent": emails_sent})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500

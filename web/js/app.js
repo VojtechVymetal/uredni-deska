@@ -97,10 +97,19 @@ async function loadCategories() {
     try {
         const cats = await api('/api/categories');
         const sel = document.getElementById('categoryFilter');
+        const emailChecks = document.getElementById('emailCatChecks');
+        
         cats.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c; opt.textContent = c;
             sel.appendChild(opt);
+            
+            if (emailChecks) {
+                const lbl = document.createElement('label');
+                lbl.className = "flex items-center gap-2";
+                lbl.innerHTML = `<input type="checkbox" value="${c}"> ${c}`;
+                emailChecks.appendChild(lbl);
+            }
         });
     } catch (e) { console.error(e); }
 }
@@ -627,3 +636,111 @@ function formatDateTime(dt) {
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeDetail();
 });
+
+// --- Notifications System ---
+
+function urlB64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function subscribePush() {
+    const btn = document.getElementById('btnPushSubscribe');
+    const status = document.getElementById('pushStatus');
+    
+    try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            throw new Error("Push notifikace nejsou podporovány v tomto prohlížeči.");
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:white;"></div> Povoluji...';
+        
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            throw new Error("Oprávnění zamítnuto.");
+        }
+        
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        let subscription = await registration.pushManager.getSubscription();
+        
+        if (!subscription) {
+            // Používáme public VAPID klíč z HTML/env (dáme ho sem natvrdo z env vars)
+            const applicationServerKey = urlB64ToUint8Array('BNwois8DD1IeKZQ3Kn9vf8QrmSCE4NUatTfFg8qazKzy0aKRw-ZOuw-OL6V74kXHgY6dFFjfX-1XMfpquzW6k1U');
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey
+            });
+        }
+        
+        const subData = JSON.parse(JSON.stringify(subscription));
+        
+        const res = await fetch('/api/subscribe/push', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(subData)
+        });
+        
+        if (!res.ok) throw new Error("Chyba při ukládání na server.");
+        
+        btn.classList.replace('bg-primary', 'bg-secondary');
+        btn.innerHTML = '<span class="material-symbols-outlined">check</span> Povoleno';
+        status.textContent = "Připraveno přijímat upozornění!";
+        status.classList.remove('hidden');
+        status.classList.add('text-secondary');
+        
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications_active</span> Povolit notifikace v prohlížeči';
+        status.textContent = e.message;
+        status.classList.remove('hidden');
+        status.classList.add('text-error');
+    }
+}
+
+async function subscribeEmail() {
+    const status = document.getElementById('emailStatus');
+    const email = document.getElementById('emailInput').value.trim();
+    if (!email || !email.includes('@')) {
+        status.textContent = "Zadejte platný e-mail.";
+        status.classList.remove('hidden');
+        status.classList.add('text-error');
+        return;
+    }
+    
+    // Zjisti kategorie
+    const cats = [];
+    document.querySelectorAll('#emailCatChecks input:checked').forEach(c => cats.push(c.value));
+    
+    // Zjisti závažnosti
+    const sevs = [];
+    document.querySelectorAll('.sev-check:checked').forEach(c => sevs.push(c.value));
+    
+    status.textContent = "Ukládám...";
+    status.classList.remove('hidden', 'text-error', 'text-secondary');
+    
+    try {
+        const res = await fetch('/api/subscribe/email', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email: email, categories: cats, severities: sevs })
+        });
+        
+        if (res.ok) {
+            status.textContent = "Úspěšně nastaveno!";
+            status.classList.add('text-secondary');
+        } else {
+            status.textContent = "Chyba na serveru.";
+            status.classList.add('text-error');
+        }
+    } catch(e) {
+        status.textContent = "Nepodařilo se připojit k serveru.";
+        status.classList.add('text-error');
+    }
+}

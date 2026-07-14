@@ -379,5 +379,85 @@ Pravidla:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+import uuid
+import json
+
+@app.route('/api/subscribe/email', methods=['POST'])
+def api_subscribe_email():
+    client = db.get_client()
+    try:
+        data = request.json
+        email = data.get("email")
+        if not email or "@" not in email:
+            return jsonify({"error": "Neplatný e-mail"}), 400
+            
+        categories = data.get("categories", [])
+        severities = data.get("severities", [])
+        
+        # Upsert subscription
+        token = str(uuid.uuid4())
+        
+        # Check if exists
+        existing = client.table("email_subscriptions").select("*").eq("email", email).execute()
+        if existing.data:
+            client.table("email_subscriptions").update({
+                "categories": categories,
+                "severities": severities,
+                "is_active": True
+            }).eq("email", email).execute()
+        else:
+            client.table("email_subscriptions").insert({
+                "email": email,
+                "categories": categories,
+                "severities": severities,
+                "is_active": True,
+                "unsubscribe_token": token
+            }).execute()
+            
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/unsubscribe', methods=['GET'])
+def api_unsubscribe_email():
+    client = db.get_client()
+    token = request.args.get("token")
+    if not token:
+        return "Chybí token", 400
+        
+    try:
+        res = client.table("email_subscriptions").update({"is_active": False}).eq("unsubscribe_token", token).execute()
+        if res.data:
+            return "Úspěšně odhlášeno z odběru e-mailů."
+        else:
+            return "Neplatný token nebo již odhlášeno."
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/api/subscribe/push', methods=['POST'])
+def api_subscribe_push():
+    client = db.get_client()
+    try:
+        data = request.json
+        endpoint = data.get("endpoint")
+        keys = data.get("keys", {})
+        p256dh = keys.get("p256dh")
+        auth = keys.get("auth")
+        
+        if not endpoint or not p256dh or not auth:
+            return jsonify({"error": "Neplatná data"}), 400
+            
+        existing = client.table("push_subscriptions").select("id").eq("endpoint", endpoint).execute()
+        if not existing.data:
+            client.table("push_subscriptions").insert({
+                "endpoint": endpoint,
+                "p256dh": p256dh,
+                "auth": auth
+            }).execute()
+            
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # API pro Vercel export
 # Není potřeba spouštět app.run() v serverless prostředí, Vercel si vezme app automaticky

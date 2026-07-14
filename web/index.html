@@ -158,14 +158,19 @@
                 <span class="material-symbols-outlined">menu</span>
             </button>
             <h1 class="text-title-sm font-headline-md font-bold text-on-surface tracking-tight whitespace-nowrap">Úřední deska Opavy</h1>
-            <!-- Search (desktop inline) -->
-            <div class="relative hidden md:block">
-                <span class="absolute inset-y-0 left-3 flex items-center text-on-surface-variant">
-                    <span class="material-symbols-outlined text-[18px]">search</span>
-                </span>
-                <input type="text" id="searchInput" placeholder="Hledat v názvu..." oninput="debounceSearch()" class="bg-surface-container-lowest border-none rounded-full pl-10 pr-10 py-1.5 text-body-sm w-80 focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-on-surface-variant">
-                <button id="searchClear" onclick="clearSearch()" style="display:none" class="absolute inset-y-0 right-3 flex items-center text-on-surface-variant hover:text-on-surface transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">close</span>
+            <div class="relative hidden md:flex items-center gap-4">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-3 flex items-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[18px]">search</span>
+                    </span>
+                    <input type="text" id="searchInput" placeholder="Hledat v názvu..." oninput="debounceSearch()" class="bg-surface-container-lowest border-none rounded-full pl-10 pr-10 py-1.5 text-body-sm w-80 focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-on-surface-variant">
+                    <button id="searchClear" onclick="clearSearch()" style="display:none" class="absolute inset-y-0 right-3 flex items-center text-on-surface-variant hover:text-on-surface transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                
+                <button onclick="document.getElementById('notifModal').classList.remove('hidden')" class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-low border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
                 </button>
             </div>
         </div>
@@ -380,8 +385,61 @@
     <!-- Content (bento grid) -->
     <div id="detailContent" class="relative z-10 p-4 lg:p-margin-page"></div>
 </div>
+<!-- Notification Modal -->
+<div id="notifModal" class="hidden fixed inset-0 bg-surface/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-surface-container-low w-full max-w-md rounded-2xl border border-outline-variant/30 shadow-2xl p-6 relative">
+        <button onclick="document.getElementById('notifModal').classList.add('hidden')" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <h2 class="text-title-lg font-bold text-on-surface mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">notifications</span>
+            Nastavení notifikací
+        </h2>
+        
+        <!-- Push notifikace -->
+        <div class="mt-6 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+            <h3 class="text-title-sm font-bold text-on-surface mb-2">Okamžitá upozornění (Push)</h3>
+            <p class="text-body-sm text-on-surface-variant mb-4">Dostávejte okamžitá upozornění na nové závažné dokumenty přímo do vašeho prohlížeče, i když máte web zavřený.</p>
+            <button id="btnPushSubscribe" onclick="subscribePush()" class="w-full bg-primary text-on-primary font-bold py-2 px-4 rounded-full flex justify-center items-center gap-2 hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">notifications_active</span>
+                Povolit notifikace v prohlížeči
+            </button>
+            <div id="pushStatus" class="mt-2 text-center text-label-sm hidden"></div>
+        </div>
+        
+        <!-- E-mail newsletter -->
+        <div class="mt-6 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
+            <h3 class="text-title-sm font-bold text-on-surface mb-2">Denní přehled e-mailem</h3>
+            <p class="text-body-sm text-on-surface-variant mb-4">Nechte si každé odpoledne posílat souhrn nových dokumentů, které vás zajímají.</p>
+            
+            <input type="email" id="emailInput" placeholder="vas@email.cz" class="w-full bg-surface-container border border-outline-variant/50 rounded-lg px-3 py-2 text-body-sm focus:ring-primary mb-3">
+            
+            <label class="block text-label-sm font-bold mb-1">Jaké kategorie?</label>
+            <div class="flex flex-col gap-1 mb-3 text-body-sm" id="emailCatChecks">
+                <label class="flex items-center gap-2"><input type="checkbox" value="all" checked> Všechny kategorie</label>
+                <!-- Categories injected by JS -->
+            </div>
+            
+            <label class="block text-label-sm font-bold mb-1">Jaká AI závažnost?</label>
+            <div class="flex flex-col gap-1 mb-4 text-body-sm">
+                <label class="flex items-center gap-2"><input type="checkbox" class="sev-check" value="all" checked> Vše</label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="sev-check" value="Závažné"> Závažné</label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="sev-check" value="Vyžaduje pozornost"> Vyžaduje pozornost</label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="sev-check" value="Běžný"> Běžné</label>
+            </div>
+            
+            <button onclick="subscribeEmail()" class="w-full bg-secondary text-on-secondary font-bold py-2 px-4 rounded-full flex justify-center items-center gap-2 hover:bg-secondary/90 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">mail</span>
+                Odebírat
+            </button>
+            <div id="emailStatus" class="mt-2 text-center text-label-sm hidden"></div>
+        </div>
+    </div>
+</div>
 
-<script src="js/app.js"></script>
+<!-- Scripts -->
+<script src="/js/app.js"></script>
 <script>
     // Sidebar mobile toggle
     function toggleSidebar() {
