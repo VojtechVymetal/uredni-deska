@@ -123,7 +123,18 @@ def api_documents():
         
         # Post-filter for severity if requested, since it's nested in supabase query result
         if severity:
-            docs = [d for d in docs if d.get("document_analyses") and d["document_analyses"][0].get("severity") == severity]
+            filtered_docs = []
+            for d in docs:
+                analyses = d.get("document_analyses")
+                sev = None
+                if isinstance(analyses, list) and len(analyses) > 0:
+                    sev = analyses[0].get("severity")
+                elif isinstance(analyses, dict):
+                    sev = analyses.get("severity")
+                
+                if sev == severity:
+                    filtered_docs.append(d)
+            docs = filtered_docs
             
         # Post-sort for vyveseni_dne using python since it's not standard format
         if sort_by == 'vyveseni_dne':
