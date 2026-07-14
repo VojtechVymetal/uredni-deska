@@ -43,7 +43,7 @@ def run_scrape():
     try:
         existing_active_ids = db.get_all_active_doc_ids(client)
         # 1. Scrapuj aktuální dokumenty
-        current_docs = asyncio.run(scraper.scrape_all_documents(known_ids=existing_active_ids, limit_new=5))
+        current_docs = asyncio.run(scraper.scrape_all_documents(known_ids=existing_active_ids, limit_new=15))
         current_doc_ids = {doc.doc_id for doc in current_docs}
         
         # 2. Zpracuj každý dokument
