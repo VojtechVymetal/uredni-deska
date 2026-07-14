@@ -2,7 +2,7 @@
    Archiv úřední desky – Frontend Logic
    ═══════════════════════════════════════════════ */
 
-let currentSort = 'first_seen_at';
+let currentSort = 'vyveseni_dne';
 let currentDir = 'desc';
 let searchTimer = null;
 let allDocuments = [];
@@ -13,7 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadWeeklySummary();
     loadCategories();
     loadDepartments();
-    loadDocuments();
+    
+    // Check if we have a direct link to a document
+    const urlParams = new URLSearchParams(window.location.search);
+    const docId = urlParams.get('id');
+    
+    loadDocuments().then(() => {
+        if (docId) {
+            openDetail(docId);
+        }
+    });
+    
     loadTimeline();
     loadRuns();
 });
@@ -184,7 +194,7 @@ function renderDocuments(docs) {
                 <span class="text-body-sm text-on-surface-variant whitespace-nowrap">${esc(doc.kategorie || '–')}</span>
             </td>
             <td class="px-6">
-                <div class="font-bold text-on-surface truncate max-w-xs" title="${esc(doc.nazev || '')}">${esc(doc.nazev || '–')}</div>
+                <a href="?id=${doc.doc_id}" onclick="event.stopPropagation(); event.preventDefault(); openDetail('${doc.doc_id}');" class="font-bold text-on-surface hover:text-primary truncate max-w-xs block" title="${esc(doc.nazev || '')}">${esc(doc.nazev || '–')}</a>
             </td>
             <td class="px-6">
                 <span class="font-data-mono text-data-mono text-on-surface-variant">${esc(doc.cj_zn || '–')}</span>
