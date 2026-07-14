@@ -153,6 +153,15 @@ def api_documents():
             if "document_analyses" in d:
                 del d["document_analyses"]
 
+        if sort_by == 'severity':
+            def sev_weight(doc):
+                s = doc.get("severity")
+                if s == 'Závažné': return 3
+                if s == 'Vyžaduje pozornost': return 2
+                if s == 'Běžný': return 1
+                return 0
+            docs.sort(key=sev_weight, reverse=not is_asc)
+
         return jsonify(docs)
     except Exception as e:
         import traceback
