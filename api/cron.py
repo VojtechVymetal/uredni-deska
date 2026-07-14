@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 # Basic authentication pro cron endpoint
 CRON_SECRET = os.environ.get("CRON_SECRET", "dev-secret-key")
 
+import asyncio
+
 @app.route('/api/cron/scrape', methods=['GET', 'POST'])
-async def run_scrape():
+def run_scrape():
     """
     Tento endpoint zavolá Vercel Cron.
     """
@@ -34,7 +36,7 @@ async def run_scrape():
     
     try:
         # 1. Scrapuj aktuální dokumenty
-        current_docs = await scraper.scrape_all_documents()
+        current_docs = asyncio.run(scraper.scrape_all_documents())
         current_doc_ids = {doc.doc_id for doc in current_docs}
         existing_active_ids = db.get_all_active_doc_ids(client)
         
@@ -74,7 +76,7 @@ async def run_scrape():
                         att_dict = {"doc_id": doc_data.doc_id, "file_id": att.file_id, "file_name": att.file_name, "file_size": att.file_size, "file_description": att.file_description, "download_url": att.download_url}
                         att_id = db.insert_attachment(client, att_dict)
                         # Stáhneme do tempu a uploadneme do Supabase
-                        storage_path = await download_file(att.download_url, doc_data.doc_id, att.file_name, 1)
+                        storage_path = asyncio.run(download_file(att.download_url, doc_data.doc_id, att.file_name, 1))
                         if storage_path:
                             # Tady by se spravně ještě tahal soubor do tmp, udělal hash, atd.
                             # Jelikož download_file to rovnou ukládá a maže z tmp, hash neuděláme přesně.
