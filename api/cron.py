@@ -41,13 +41,16 @@ def run_scrape():
     stats = {"new": 0, "updated_meta": 0, "updated_file": 0, "removed": 0, "unchanged": 0, "errors": 0}
     
     try:
-        # 1. Scrapuj aktuální dokumenty
-        current_docs = asyncio.run(scraper.scrape_all_documents())
-        current_doc_ids = {doc.doc_id for doc in current_docs}
         existing_active_ids = db.get_all_active_doc_ids(client)
+        # 1. Scrapuj aktuální dokumenty
+        current_docs = asyncio.run(scraper.scrape_all_documents(known_ids=existing_active_ids, limit_new=5))
+        current_doc_ids = {doc.doc_id for doc in current_docs}
         
         # 2. Zpracuj každý dokument
         for doc_data in current_docs:
+            if not doc_data.nazev:
+                continue # Skip dummy docs that were not fetched
+                
             try:
                 # Ořezaná logika process_document...
                 # Pro ukázku zkontrolujeme existenci

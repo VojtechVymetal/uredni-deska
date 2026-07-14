@@ -165,7 +165,7 @@ async def _fetch_page(client: httpx.AsyncClient, url: str) -> str:
     return response.text
 
 
-async def scrape_all_documents() -> list[DocumentData]:
+async def scrape_all_documents(known_ids: set = None, limit_new: int = 5) -> list[DocumentData]:
     documents = []
     
     headers = {
@@ -180,8 +180,18 @@ async def scrape_all_documents() -> list[DocumentData]:
             doc_ids = _extract_doc_ids(list_html)
             logger.info("Celkem nalezeno %d unikátních dokumentů", len(doc_ids))
             
+            new_count = 0
             for i, doc_id in enumerate(doc_ids):
                 try:
+                    if known_ids and doc_id in known_ids:
+                        documents.append(DocumentData(doc_id=doc_id))
+                        continue
+                        
+                    if new_count >= limit_new:
+                        documents.append(DocumentData(doc_id=doc_id))
+                        continue
+                        
+                    new_count += 1
                     logger.info("Zpracovávám dokument %d/%d: %s", i + 1, len(doc_ids), doc_id)
                     detail_url = config.DETAIL_URL_TEMPLATE.format(doc_id=doc_id)
                     await _random_delay()
@@ -193,6 +203,7 @@ async def scrape_all_documents() -> list[DocumentData]:
                     logger.debug("Dokument %s: %s, %d příloh", doc_id, doc_data.nazev, len(doc_data.attachments))
                 except Exception as e:
                     logger.error("Chyba při zpracování dokumentu %s: %s", doc_id, e)
+                    documents.append(DocumentData(doc_id=doc_id))
                     continue
 
         except Exception as e:
