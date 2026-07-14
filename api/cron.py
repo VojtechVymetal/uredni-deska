@@ -3,8 +3,14 @@ Cron endpoint pro Vercel. Spouští scraper a analyzátor.
 """
 
 import os
+import sys
 import uuid
 import logging
+import asyncio
+
+# Fix sys.path for imports from root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, jsonify, request
 import database as db
 import scraper

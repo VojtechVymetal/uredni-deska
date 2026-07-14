@@ -7,6 +7,9 @@ import sys
 from datetime import datetime, timedelta
 import json as _json
 
+# Fix sys.path for imports from root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, jsonify, request, send_from_directory
 import database as db
 import config
