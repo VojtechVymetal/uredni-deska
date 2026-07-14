@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="cs" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UDAVAČ – Archiv úřední desky Opavy</title>
+    <meta name="description" content="Verzovaný archiv úřední desky statutárního města Opavy">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hanken+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+    try {
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "tertiary": "#ffb95f",
+              "surface-container-high": "#222a3d",
+              "secondary-fixed-dim": "#4edea3",
+              "on-secondary-fixed-variant": "#005236",
+              "on-tertiary-fixed": "#2a1700",
+              "surface-tint": "#a7c8ff",
+              "secondary": "#4edea3",
+              "on-primary-fixed-variant": "#004788",
+              "outline-variant": "#414753",
+              "on-error-container": "#ffdad6",
+              "on-surface": "#dae2fd",
+              "inverse-on-surface": "#283044",
+              "surface-container": "#171f33",
+              "tertiary-container": "#cb8100",
+              "background": "#0b1326",
+              "primary-container": "#3392ff",
+              "on-primary-fixed": "#001c3b",
+              "on-primary": "#003060",
+              "surface-dim": "#0b1326",
+              "tertiary-fixed-dim": "#ffb95f",
+              "inverse-surface": "#dae2fd",
+              "error": "#ffb4ab",
+              "on-surface-variant": "#c0c6d5",
+              "on-background": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-tertiary-container": "#3e2500",
+              "secondary-fixed": "#6ffbbe",
+              "surface-variant": "#2d3449",
+              "on-tertiary-fixed-variant": "#653e00",
+              "inverse-primary": "#005eb2",
+              "primary": "#a7c8ff",
+              "on-error": "#690005",
+              "tertiary-fixed": "#ffddb8",
+              "on-secondary-container": "#00311f",
+              "surface": "#0b1326",
+              "outline": "#8a919f",
+              "surface-container-low": "#131b2e",
+              "primary-fixed-dim": "#a7c8ff",
+              "on-primary-container": "#002a56",
+              "on-secondary": "#003824",
+              "secondary-container": "#00a572",
+              "surface-container-lowest": "#060e20",
+              "on-tertiary": "#472a00",
+              "surface-bright": "#31394d",
+              "primary-fixed": "#d5e3ff",
+              "on-secondary-fixed": "#002113",
+              "error-container": "#93000a"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            },
+            "spacing": {
+              "margin-page": "2rem",
+              "stack-sm": "0.5rem",
+              "gutter": "1.5rem",
+              "container-max": "1440px",
+              "stack-md": "1rem",
+              "row-height": "3.5rem",
+              "stack-xs": "0.25rem"
+            },
+            "fontFamily": {
+              "data-mono": ["Inter"],
+              "label-caps": ["Inter"],
+              "body-sm": ["Inter"],
+              "headline-lg": ["Hanken Grotesk"],
+              "body-md": ["Inter"],
+              "headline-md": ["Hanken Grotesk"],
+              "title-sm": ["Inter"]
+            },
+            "fontSize": {
+              "data-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+              "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+              "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+              "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+              "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+              "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+              "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    } catch(_e) {}
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-body-md text-body-md overflow-hidden bg-background text-on-surface">
+
+<!-- ═══ Sidebar Overlay (mobile) ═══ -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<!-- ═══ Sidebar Navigation ═══ -->
+<aside id="sidebar" class="flex flex-col h-screen fixed left-0 top-0 border-r border-outline-variant py-stack-md bg-surface-container-low w-64 z-50 custom-scrollbar">
+    <!-- Logo -->
+    <div class="px-6 mb-8 flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center text-on-primary-container flex-shrink-0">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+        </div>
+        <div class="min-w-0">
+            <h2 class="text-headline-md font-headline-md text-primary leading-tight">UDAVAČ</h2>
+            <p class="text-label-caps font-label-caps text-on-surface-variant opacity-70 truncate">Úřední deska a valuátor aktivního člena</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-4 space-y-1">
+        <a href="#" class="tab flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-lg transition-transform translate-x-1 active" data-tab="documents" onclick="switchTab('documents')">
+            <span class="material-symbols-outlined">description</span>
+            <span class="text-label-caps font-label-caps">Dokumenty</span>
+        </a>
+        <a href="#" class="tab flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg group" data-tab="timeline" onclick="switchTab('timeline')">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="text-label-caps font-label-caps">Aktivita</span>
+        </a>
+        <a href="#" class="tab flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg group" data-tab="runs" onclick="switchTab('runs')">
+            <span class="material-symbols-outlined">terminal</span>
+            <span class="text-label-caps font-label-caps">Běhy scraperu</span>
+        </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="px-4 mt-auto space-y-4">
+        <div class="pt-4 border-t border-outline-variant">
+            <span id="lastUpdate" class="text-label-caps font-label-caps text-on-surface-variant opacity-60 block px-4 py-2"></span>
+        </div>
+    </div>
+</aside>
+
+<!-- ═══ Main Content Wrapper ═══ -->
+<main class="ml-0 lg:ml-64 flex flex-col h-screen overflow-hidden">
+
+    <!-- ── Top Navigation Bar ── -->
+    <header class="flex justify-between items-center w-full px-4 lg:px-gutter h-row-height sticky top-0 z-30 bg-surface-container border-b border-outline-variant flex-shrink-0">
+        <div class="flex items-center gap-4 lg:gap-6">
+            <!-- Hamburger (mobile only) -->
+            <button id="menuToggle" class="lg:hidden p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors" onclick="toggleSidebar()">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <h1 class="text-title-sm font-headline-md font-bold text-on-surface tracking-tight whitespace-nowrap">Úřední deska Opavy</h1>
+            <!-- Search (desktop inline) -->
+            <div class="relative hidden md:block">
+                <span class="absolute inset-y-0 left-3 flex items-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[18px]">search</span>
+                </span>
+                <input type="text" id="searchInput" placeholder="Hledat v názvu..." oninput="debounceSearch()" class="bg-surface-container-lowest border-none rounded-full pl-10 pr-10 py-1.5 text-body-sm w-80 focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-on-surface-variant">
+                <button id="searchClear" onclick="clearSearch()" style="display:none" class="absolute inset-y-0 right-3 flex items-center text-on-surface-variant hover:text-on-surface transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="exportJSON()" class="px-4 py-1.5 bg-primary-container text-on-primary-container text-label-caps font-label-caps rounded-full hover:opacity-80 transition-all active:scale-95">
+                Export
+            </button>
+        </div>
+    </header>
+
+    <!-- ── Dashboard Content Area ── -->
+    <div class="flex-1 overflow-y-auto p-4 lg:p-gutter custom-scrollbar">
+
+        <!-- Mobile search (shown below header on small screens) -->
+        <div class="md:hidden mb-4">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[18px]">search</span>
+                </span>
+                <input type="text" placeholder="Hledat v názvu..." oninput="document.getElementById('searchInput').value=this.value;debounceSearch()" class="bg-surface-container-lowest border border-outline-variant/40 rounded-full pl-10 pr-4 py-2 text-body-sm w-full focus:ring-2 focus:ring-primary transition-all text-on-surface placeholder:text-on-surface-variant">
+            </div>
+        </div>
+
+        <!-- ── Weekly AI Summary ── -->
+        <section id="weeklySummarySection" class="mb-6 lg:mb-8">
+            <div class="glass-card rounded-xl p-5 lg:p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-[0.06] pointer-events-none">
+                    <span class="material-symbols-outlined text-primary text-[56px]">auto_awesome</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    <h3 class="text-label-caps font-label-caps text-primary tracking-widest">TÝDENNÍ PŘEHLED</h3>
+                    <span id="weeklySummaryDateRange" class="text-label-caps font-label-caps text-on-surface-variant ml-2"></span>
+                </div>
+                <div id="weeklySummaryContent" class="text-body-md text-on-surface leading-relaxed">
+                    <div class="flex items-center gap-3 text-on-surface-variant">
+                        <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+                        <span class="text-body-sm">Načítám shrnutí týdne…</span>
+                    </div>
+                </div>
+                <div id="weeklySummaryCost" class="mt-3 text-[10px] text-on-surface-variant italic hidden"></div>
+            </div>
+        </section>
+
+        <!-- ── Stats Section ── -->
+        <section id="statsSection" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4 mb-6 lg:mb-8">
+            <!-- Všechny dokumenty -->
+            <div class="glass-panel p-4 lg:p-5 rounded-xl border border-outline-variant/30 relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer stat-filter active" data-filter="all" onclick="filterByStat('all')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-label-caps font-label-caps text-on-surface-variant">Všechny dokumenty</span>
+                    <div class="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">description</span>
+                    </div>
+                </div>
+                <div class="text-headline-lg font-headline-lg text-on-surface" id="statTotal">–</div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-primary/20 group-hover:bg-primary transition-colors"></div>
+            </div>
+            <!-- Aktivní -->
+            <div class="glass-panel p-4 lg:p-5 rounded-xl border border-outline-variant/30 relative overflow-hidden group hover:border-secondary/50 transition-colors cursor-pointer stat-filter" data-filter="active" onclick="filterByStat('active')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-label-caps font-label-caps text-on-surface-variant">Aktivní</span>
+                    <div class="w-8 h-8 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                    </div>
+                </div>
+                <div class="text-headline-lg font-headline-lg text-secondary" id="statActive">–</div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-secondary/20 group-hover:bg-secondary transition-colors"></div>
+            </div>
+            <!-- Smazané -->
+            <div class="glass-panel p-4 lg:p-5 rounded-xl border border-outline-variant/30 relative overflow-hidden group hover:border-error/50 transition-colors cursor-pointer stat-filter" data-filter="removed" onclick="filterByStat('removed')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-label-caps font-label-caps text-on-surface-variant">Smazané</span>
+                    <div class="w-8 h-8 bg-error/10 text-error rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+                    </div>
+                </div>
+                <div class="text-headline-lg font-headline-lg text-on-surface" id="statRemoved">–</div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-error/20 group-hover:bg-error transition-colors"></div>
+            </div>
+            <!-- Vyžaduje pozornost -->
+            <div class="glass-panel p-4 lg:p-5 rounded-xl border border-outline-variant/30 relative overflow-hidden group hover:border-tertiary/50 transition-colors cursor-pointer stat-filter" data-filter="sev-attention" onclick="filterByStat('sev-attention')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-label-caps font-label-caps text-on-surface-variant">Vyžaduje pozornost</span>
+                    <div class="w-8 h-8 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">warning</span>
+                    </div>
+                </div>
+                <div class="text-headline-lg font-headline-lg text-tertiary" id="statAttention">–</div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-tertiary/20 group-hover:bg-tertiary transition-colors"></div>
+            </div>
+            <!-- Závažné -->
+            <div class="glass-panel p-4 lg:p-5 rounded-xl border border-outline-variant/30 relative overflow-hidden group hover:border-error/50 transition-colors cursor-pointer stat-filter" data-filter="sev-serious" onclick="filterByStat('sev-serious')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-label-caps font-label-caps text-on-surface-variant">Závažné</span>
+                    <div class="w-8 h-8 bg-error/10 text-error rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">error</span>
+                    </div>
+                </div>
+                <div class="text-headline-lg font-headline-lg text-error" id="statSerious">–</div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-error/20 group-hover:bg-error transition-colors"></div>
+            </div>
+        </section>
+
+        <!-- ── Filters Section ── -->
+        <section id="filtersSection" class="mb-6 flex flex-wrap items-center gap-3 bg-surface-container-low p-3 lg:p-4 rounded-xl border border-outline-variant/20">
+            <div class="flex-1 min-w-[180px]">
+                <select id="categoryFilter" onchange="loadDocuments()" class="w-full bg-surface-container-lowest border-outline-variant/40 rounded-lg text-body-sm focus:ring-primary focus:border-primary text-on-surface-variant">
+                    <option value="">Kategorie (Vše)</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[180px]">
+                <select id="departmentFilter" onchange="loadDocuments()" class="w-full bg-surface-container-lowest border-outline-variant/40 rounded-lg text-body-sm focus:ring-primary focus:border-primary text-on-surface-variant">
+                    <option value="">Odbor (Vše)</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[140px]">
+                <select id="statusFilter" onchange="loadDocuments()" class="w-full bg-surface-container-lowest border-outline-variant/40 rounded-lg text-body-sm focus:ring-primary focus:border-primary text-on-surface-variant">
+                    <option value="all">Stav (Vše)</option>
+                    <option value="active">Aktivní</option>
+                    <option value="removed">Neaktivní</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[180px]">
+                <select id="severityFilter" onchange="loadDocuments()" class="w-full bg-surface-container-lowest border-outline-variant/40 rounded-lg text-body-sm focus:ring-primary focus:border-primary text-on-surface-variant">
+                    <option value="">Závažnost (Vše)</option>
+                    <option value="Běžný">🟢 Běžný</option>
+                    <option value="Vyžaduje pozornost">🟡 Vyžaduje pozornost</option>
+                    <option value="Závažné">🔴 Závažné</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 py-2 text-body-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    <input type="date" id="dateFrom" onchange="loadDocuments()" class="bg-transparent border-none p-0 text-body-sm text-on-surface-variant focus:ring-0 w-[110px]" style="color-scheme:dark">
+                </div>
+                <span class="text-on-surface-variant text-body-sm">—</span>
+                <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 py-2 text-body-sm text-on-surface-variant">
+                    <input type="date" id="dateTo" onchange="loadDocuments()" class="bg-transparent border-none p-0 text-body-sm text-on-surface-variant focus:ring-0 w-[110px]" style="color-scheme:dark">
+                </div>
+            </div>
+            <div class="ml-auto text-body-sm text-on-surface-variant whitespace-nowrap">
+                <span id="resultCount" class="text-on-surface font-bold">0</span> dokumentů
+            </div>
+        </section>
+
+        <!-- ═══ Documents Tab ═══ -->
+        <section id="documentsTab" class="tab-content active">
+            <div class="glass-panel rounded-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table id="docTable" class="w-full text-left border-collapse">
+                        <thead class="bg-surface-container-highest/50 border-b border-outline-variant">
+                            <tr>
+                                <th class="sortable px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider whitespace-nowrap" data-sort="kategorie" onclick="toggleSort('kategorie')">Kategorie <span class="sort-icon"></span></th>
+                                <th class="sortable px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider whitespace-nowrap" data-sort="nazev" onclick="toggleSort('nazev')">Název <span class="sort-icon"></span></th>
+                                <th class="sortable px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider whitespace-nowrap" data-sort="cj_zn" onclick="toggleSort('cj_zn')">ČJ / ID <span class="sort-icon"></span></th>
+                                <th class="sortable px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider whitespace-nowrap" data-sort="vyveseni_dne" onclick="toggleSort('vyveseni_dne')">Publikováno <span class="sort-icon"></span></th>
+                                <th class="px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider text-center whitespace-nowrap">Přílohy</th>
+                                <th class="sortable px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider text-center whitespace-nowrap" data-sort="severity" onclick="toggleSort('severity')">AI <span class="sort-icon"></span></th>
+                                <th class="px-4 lg:px-6 py-4 text-label-caps font-label-caps text-on-surface-variant tracking-wider whitespace-nowrap">Stav</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docTableBody" class="divide-y divide-outline-variant/30"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Empty state -->
+            <div id="emptyState" style="display:none" class="text-center py-16 text-on-surface-variant">
+                <span class="material-symbols-outlined text-[64px] opacity-30 mb-4 block">description</span>
+                <p class="text-body-md">Žádné dokumenty neodpovídají filtru</p>
+            </div>
+        </section>
+
+        <!-- ═══ Timeline Tab ═══ -->
+        <section id="timelineTab" class="tab-content">
+            <div id="timelineList" class="max-w-3xl space-y-2"></div>
+        </section>
+
+        <!-- ═══ Runs Tab ═══ -->
+        <section id="runsTab" class="tab-content">
+            <div id="runsList" class="max-w-3xl space-y-2"></div>
+        </section>
+
+    </div><!-- /content area -->
+</main>
+
+<!-- ═══ Detail Overlay ═══ -->
+<div id="detailOverlay" class="detail-overlay" onclick="closeDetail()"></div>
+<div id="detailPanel" class="detail-panel custom-scrollbar">
+    <!-- Atmospheric Background -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
+    <!-- Header -->
+    <div id="detailHeader" class="detail-header relative z-10">
+        <div class="flex items-center gap-4">
+            <button onclick="closeDetail()" class="p-2 hover:bg-surface-container-high rounded-lg transition-colors flex-shrink-0">
+                <span class="material-symbols-outlined text-primary">arrow_back</span>
+            </button>
+            <div class="min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 id="detailTitle" class="text-headline-lg font-headline-lg text-on-surface truncate">Detail dokumentu</h2>
+                    <span id="detailStatus" class="px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full flex items-center gap-1.5"></span>
+                </div>
+                <p id="detailSubtitle" class="text-body-sm text-on-surface-variant mt-1"></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <button onclick="closeDetail()" class="p-2 bg-surface-container-high border border-outline-variant text-on-surface rounded hover:bg-error-container hover:text-on-error-container transition-all">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </div>
+    <!-- Content (bento grid) -->
+    <div id="detailContent" class="relative z-10 p-4 lg:p-margin-page"></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+    // Sidebar mobile toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('hidden');
+    }
+
+    // Close sidebar on nav click (mobile)
+    document.querySelectorAll('#sidebar nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                toggleSidebar();
+            }
+        });
+    });
+
+    // Update active nav styling on tab switch
+    const origSwitchTab = window.switchTab;
+    window.switchTab = function(name) {
+        // Update sidebar nav
+        document.querySelectorAll('#sidebar nav a.tab').forEach(a => {
+            const isActive = a.dataset.tab === name;
+            if (isActive) {
+                a.className = 'tab flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-lg transition-transform translate-x-1 active';
+            } else {
+                a.className = 'tab flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg group';
+            }
+        });
+        // Call original
+        if (origSwitchTab) origSwitchTab(name);
+    };
+</script>
+</body>
+</html>
