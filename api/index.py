@@ -486,6 +486,10 @@ def api_fix_batch():
                 for att in doc_data.attachments:
                     if not att.download_url: continue
                     existing_att = db.get_attachment(client, doc_id, att.file_name)
+                    
+                    needs_download = False
+                    att_id = None
+                    
                     if not existing_att:
                         att_dict = {
                             "doc_id": doc_id, 
@@ -496,6 +500,14 @@ def api_fix_batch():
                             "download_url": att.download_url
                         }
                         att_id = db.insert_attachment(client, att_dict)
+                        needs_download = True
+                    else:
+                        att_id = existing_att["id"]
+                        ver_res = client.table("attachment_versions").select("id").eq("attachment_id", att_id).execute()
+                        if not ver_res.data:
+                            needs_download = True
+                            
+                    if needs_download:
                         storage_path = await download_file(att.download_url, doc_id, att.file_name, 1)
                         if storage_path:
                             db.insert_attachment_version(client, att_id, 1, "n/a", storage_path)
