@@ -459,10 +459,11 @@ def api_subscribe_push():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/fix-doc', methods=['GET'])
-def api_fix_doc():
-    doc_id = request.args.get("id")
-    if not doc_id: return "Missing id", 400
+@app.route('/api/fix-batch', methods=['GET'])
+def api_fix_batch():
+    ids_str = request.args.get("ids")
+    if not ids_str: return jsonify({"error": "Missing ids"}), 400
+    doc_ids = ids_str.split(",")
     
     import asyncio
     import httpx
@@ -470,41 +471,44 @@ def api_fix_doc():
     from downloader import download_file
     
     client = db.get_client()
-    url = f"https://egov.opava-city.cz/Uredni_deska/DetailDokument.aspx?IdFile={doc_id}&Por=0"
     
     async def _run():
-        async with httpx.AsyncClient(verify=False) as http_client:
-            html = await scraper._fetch_page(http_client, url)
-        
-        doc_data = scraper._parse_detail_page(html, doc_id)
-        
-        inserted = 0
-        for att in doc_data.attachments:
-            if not att.download_url: continue
-            existing_att = db.get_attachment(client, doc_id, att.file_name)
-            if not existing_att:
-                att_dict = {
-                    "doc_id": doc_id, 
-                    "file_id": att.file_id, 
-                    "file_name": att.file_name, 
-                    "file_size": att.file_size, 
-                    "file_description": att.file_description, 
-                    "download_url": att.download_url
-                }
-                att_id = db.insert_attachment(client, att_dict)
-                storage_path = await download_file(att.download_url, doc_id, att.file_name, 1)
-                if storage_path:
-                    db.insert_attachment_version(client, att_id, 1, "n/a", storage_path)
-                    inserted += 1
-        return inserted
+        inserted_total = 0
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        async with httpx.AsyncClient(headers=headers, verify=False, follow_redirects=True) as http_client:
+            for doc_id in doc_ids:
+                if not doc_id.strip(): continue
+                url = f"https://egov.opava-city.cz/Uredni_deska/DetailDokument.aspx?IdFile={doc_id}&Por=0"
+                html = await scraper._fetch_page(http_client, url)
+                doc_data = scraper._parse_detail_page(html, doc_id)
+                for att in doc_data.attachments:
+                    if not att.download_url: continue
+                    existing_att = db.get_attachment(client, doc_id, att.file_name)
+                    if not existing_att:
+                        att_dict = {
+                            "doc_id": doc_id, 
+                            "file_id": att.file_id, 
+                            "file_name": att.file_name, 
+                            "file_size": att.file_size, 
+                            "file_description": att.file_description, 
+                            "download_url": att.download_url
+                        }
+                        att_id = db.insert_attachment(client, att_dict)
+                        storage_path = await download_file(att.download_url, doc_id, att.file_name, 1)
+                        if storage_path:
+                            db.insert_attachment_version(client, att_id, 1, "n/a", storage_path)
+                            inserted_total += 1
+        return inserted_total
         
     try:
         inserted = asyncio.run(_run())
-        return f"Fixed {doc_id}. Inserted {inserted} new attachments."
+        return jsonify({"success": True, "inserted": inserted})
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return str(e), 500
+        return jsonify({"error": str(e)}), 500
 
 # API pro Vercel export
 # Není potřeba spouštět app.run() v serverless prostředí, Vercel si vezme app automaticky
