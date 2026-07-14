@@ -313,7 +313,7 @@ def api_weekly_summary():
         
         if not notable_docs:
             summary_text = "Tento týden nebyly zaznamenány žádné dokumenty vyžadující zvláštní pozornost."
-            client.table("weekly_summaries").insert({
+            client.table("weekly_summaries").upsert({
                 "week_start": ws_str, "week_end": we_str, "summary_text": summary_text,
                 "doc_ids": [], "prompt_tokens": 0, "completion_tokens": 0, "cost_czk": 0.0, "model": None
             }).execute()
@@ -364,7 +364,7 @@ Pravidla:
         cost_czk = round(cost_usd * config.AI_USD_TO_CZK, 6)
         summary_text = response.text.strip()
 
-        client.table("weekly_summaries").insert({
+        client.table("weekly_summaries").upsert({
             "week_start": ws_str, "week_end": we_str, "summary_text": summary_text,
             "doc_ids": doc_ids, "prompt_tokens": pt, "completion_tokens": ct, "cost_czk": cost_czk, "model": config.GEMINI_MODEL
         }).execute()
