@@ -464,9 +464,7 @@ function renderDetail(data) {
                 </div>`;
             // Download links
             if (att.versions && att.versions.length > 0) {
-                const latest = att.versions[att.versions.length - 1];
-                const fname = latest.local_path.split(/[\\/]/).pop();
-                html += `<a href="/api/attachment/${encodeURIComponent(att.doc_id)}/${encodeURIComponent(fname)}" target="_blank" class="flex-shrink-0" onclick="event.stopPropagation()">
+                html += `<a href="/api/attachment/${encodeURIComponent(att.doc_id)}/${encodeURIComponent(att.file_name)}" target="_blank" class="flex-shrink-0" onclick="event.stopPropagation()">
                     <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">download</span>
                 </a>`;
             }

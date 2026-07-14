@@ -131,8 +131,16 @@ def api_documents():
 
         # Simplify structure for frontend
         for d in docs:
-            d["severity"] = d["document_analyses"][0].get("severity") if d.get("document_analyses") else None
-            del d["document_analyses"]
+            analyses = d.get("document_analyses")
+            if isinstance(analyses, list) and len(analyses) > 0:
+                d["severity"] = analyses[0].get("severity")
+            elif isinstance(analyses, dict):
+                d["severity"] = analyses.get("severity")
+            else:
+                d["severity"] = None
+                
+            if "document_analyses" in d:
+                del d["document_analyses"]
 
         return jsonify(docs)
     except Exception as e:
@@ -157,10 +165,12 @@ def api_document_detail(doc_id):
 
 @app.route('/api/attachment/<doc_id>/<path:filename>')
 def api_attachment(doc_id, filename):
+    import urllib.parse
     client = db.get_client()
     try:
+        decoded_filename = urllib.parse.unquote(filename)
         # Find attachment
-        att_res = client.table("attachments").select("id").eq("doc_id", doc_id).eq("file_name", filename).execute()
+        att_res = client.table("attachments").select("id").eq("doc_id", doc_id).eq("file_name", decoded_filename).execute()
         if not att_res.data:
             return jsonify({"error": "Attachment not found"}), 404
             
