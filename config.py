@@ -11,10 +11,10 @@ DATA_DIR = BASE_DIR / "data"
 ARCHIVE_DIR = BASE_DIR / "archive"
 LOG_DIR = BASE_DIR / "logs"
 
-# Zajistit vytvoření adresářů
-DATA_DIR.mkdir(exist_ok=True)
-ARCHIVE_DIR.mkdir(exist_ok=True)
-LOG_DIR.mkdir(exist_ok=True)
+# Zajistit vytvoření adresářů (Vercel je read-only, nepoužíváme je, tak je nevytváříme)
+# DATA_DIR.mkdir(exist_ok=True)
+# ARCHIVE_DIR.mkdir(exist_ok=True)
+# LOG_DIR.mkdir(exist_ok=True)
 
 # === Databáze (Supabase) ===
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")

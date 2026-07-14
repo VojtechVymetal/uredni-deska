@@ -1,6 +1,7 @@
 """
 Modul pro stahování příloh, výpočet hashů a upload do Supabase Storage.
 """
+from __future__ import annotations
 
 import hashlib
 import logging
