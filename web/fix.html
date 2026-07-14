@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Hromadná oprava příloh</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; }
+        .progress-bar { width: 100%; max-width: 500px; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; margin: 1rem 0; }
+        .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
+        #log { margin-top: 1rem; max-height: 300px; overflow-y: auto; background: #f9f9f9; padding: 1rem; border: 1px solid #ccc; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Oprava chybějících příloh</h1>
+    <p>Tento skript projde všechny dokumenty v databázi a dohledá u nich případné chybějící přílohy (z důvodu staré chyby ve formátování městského webu).</p>
+    
+    <button id="btnStart" onclick="startFix()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Spustit hromadnou opravu</button>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <p id="status">Připraveno ke spuštění...</p>
+    <div id="log"></div>
+    
+    <script>
+        const BATCH_SIZE = 5;
+        
+        function log(msg) {
+            const l = document.getElementById('log');
+            l.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${msg}</div>`;
+            l.scrollTop = l.scrollHeight;
+        }
+        
+        async function startFix() {
+            const btn = document.getElementById('btnStart');
+            btn.disabled = true;
+            
+            try {
+                log("Stahuji seznam dokumentů...");
+                const res = await fetch('/api/documents');
+                const docs = await res.json();
+                const ids = docs.map(d => d.doc_id);
+                
+                log(`Nalezeno ${ids.length} dokumentů k prověření.`);
+                
+                let processed = 0;
+                let totalInserted = 0;
+                
+                for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+                    const batch = ids.slice(i, i + BATCH_SIZE);
+                    log(`Zpracovávám dávku ${Math.floor(i/BATCH_SIZE)+1}/${Math.ceil(ids.length/BATCH_SIZE)}...`);
+                    
+                    try {
+                        const batchRes = await fetch(`/api/fix-batch?ids=${batch.join(',')}`);
+                        const data = await batchRes.json();
+                        
+                        if (data.success) {
+                            totalInserted += data.inserted;
+                            if (data.inserted > 0) {
+                                log(`Našlo se a vložilo ${data.inserted} chybějících příloh!`);
+                            }
+                        } else {
+                            log(`Chyba u dávky: ${data.error}`);
+                        }
+                    } catch (e) {
+                        log(`Chyba síťového spojení u dávky: ${e.message}`);
+                    }
+                    
+                    processed += batch.length;
+                    const percent = (processed / ids.length) * 100;
+                    document.getElementById('progressFill').style.width = `${percent}%`;
+                    document.getElementById('status').innerText = `Zpracováno ${processed} / ${ids.length}`;
+                }
+                
+                log(`<b>HOTOVO!</b> Celkem bylo nalezeno a dohráno ${totalInserted} chybějících příloh do databáze.`);
+                document.getElementById('status').innerText = `Hotovo! Přidáno ${totalInserted} příloh. Můžete tuto stránku zavřít.`;
+                
+            } catch (e) {
+                log(`Kritická chyba: ${e.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
