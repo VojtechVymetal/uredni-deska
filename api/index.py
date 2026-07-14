@@ -512,6 +512,10 @@ def api_fix_batch():
                         if storage_path:
                             db.insert_attachment_version(client, att_id, 1, "n/a", storage_path)
                             inserted_total += 1
+                
+                if inserted_total > 0:
+                    # Smazat starou analýzu, aby se při příštím cronu vytvořila nová
+                    client.table("document_analyses").delete().eq("doc_id", doc_id).execute()
         return inserted_total
         
     try:
@@ -520,6 +524,19 @@ def api_fix_batch():
     except Exception as e:
         import traceback
         traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/force-analyze', methods=['GET'])
+def api_force_analyze():
+    doc_id = request.args.get("id")
+    if not doc_id: return jsonify({"error": "Missing id"}), 400
+    
+    from analyzer import analyze_document
+    client = db.get_client()
+    try:
+        analyze_document(client, doc_id, force=True)
+        return jsonify({"success": True})
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 # API pro Vercel export
