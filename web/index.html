@@ -137,6 +137,10 @@
             <span class="material-symbols-outlined">terminal</span>
             <span class="text-label-caps font-label-caps">Běhy scraperu</span>
         </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3 mt-4 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all rounded-lg group" onclick="document.getElementById('notifModal').classList.remove('hidden')">
+            <span class="material-symbols-outlined group-hover:text-primary">notifications</span>
+            <span class="text-label-caps font-label-caps">Přihlásit k notifikacím</span>
+        </a>
     </nav>
 
     <!-- Footer -->
@@ -171,9 +175,6 @@
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <button onclick="document.getElementById('notifModal').classList.remove('hidden')" class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-low border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container-highest transition-colors">
-                <span class="material-symbols-outlined text-primary">notifications</span>
-            </button>
             <button onclick="exportJSON()" class="px-4 py-1.5 bg-primary-container text-on-primary-container text-label-caps font-label-caps rounded-full hover:opacity-80 transition-all active:scale-95">
                 Export
             </button>
