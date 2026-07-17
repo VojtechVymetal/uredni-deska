@@ -575,3 +575,26 @@ def api_admin_delete_subscriber(sub_id):
         return jsonify({"status": "ok"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/trigger-emails', methods=['POST'])
+def api_admin_trigger_emails():
+    if not check_admin_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    cron_secret = os.environ.get('CRON_SECRET')
+    # Make request to the cron endpoint using the secret
+    import requests
+    try:
+        url = f"https://{request.host}/api/cron/daily-emails?key={cron_secret}"
+        # We can also hardcode the host just in case
+        if "localhost" in request.host or "127.0.0.1" in request.host:
+             url = f"http://{request.host}/api/cron/daily-emails?key={cron_secret}"
+             
+        res = requests.post(url, timeout=30)
+        
+        try:
+            return jsonify({"status": res.status_code, "response": res.json()})
+        except:
+            return jsonify({"status": res.status_code, "response": res.text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

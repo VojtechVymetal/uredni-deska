@@ -147,3 +147,37 @@ async function deleteSubscriber(id, email) {
         alert('NepodaÅ™ilo se smazat zÃ¡znam: ' + e.message);
     }
 }
+
+async function triggerEmails() {
+    const btn = document.getElementById('btnTriggerEmails');
+    if (!confirm('Opravdu chcete hned teï ruènì rozeslat maily za posledních 24 hodin všem odbìratelùm?')) {
+        return;
+    }
+    
+    const pwd = sessionStorage.getItem('admin_password');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<div class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div> Odesílám...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/admin/trigger-emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + pwd
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Úspìšnì odesláno! Server vrátil: ' + JSON.stringify(data.response));
+        } else {
+            alert('Chyba pøi odesílání: ' + JSON.stringify(data));
+        }
+    } catch (e) {
+        alert('Nepodaøilo se spustit odesílání: ' + e.message);
+    } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
+}

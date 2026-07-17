@@ -81,9 +81,14 @@
                     </div>
                 </div>
             </div>
-            <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant transition-colors text-body-sm font-bold">
-                <span class="material-symbols-outlined text-[18px]">logout</span> Odhlásit se
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="triggerEmails()" id="btnTriggerEmails" class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-on-primary font-bold hover:bg-primary/90 transition-colors text-body-sm shadow-md">
+                    <span class="material-symbols-outlined text-[18px]">send</span> Odeslat reporty hned
+                </button>
+                <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant transition-colors text-body-sm font-bold">
+                    <span class="material-symbols-outlined text-[18px]">logout</span> Odhlásit se
+                </button>
+            </div>
         </header>
 
         <main id="mainContent" class="hidden">
