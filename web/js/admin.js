@@ -88,6 +88,10 @@ function renderTable(subscribers) {
         const categories = sub.categories ? sub.categories.join(', ') : 'Všechny';
         const isActive = sub.is_active !== false;
         
+        const severities = (sub.severities && sub.severities.length > 0)
+            ? (sub.severities.includes('all') ? 'Vše' : sub.severities.join(', '))
+            : 'Vše';
+
         return `
             <tr class="hover:bg-surface-container-low transition-colors">
                 <td class="py-4 px-6">
@@ -97,7 +101,7 @@ function renderTable(subscribers) {
                     ${escapeHtml(categories)}
                 </td>
                 <td class="py-4 px-6 text-body-sm text-on-surface-variant">
-                    ${escapeHtml(sub.severity_level || 'Běžný')}
+                    ${escapeHtml(severities)}
                 </td>
                 <td class="py-4 px-6">
                     ${isActive 
