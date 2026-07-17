@@ -585,3 +585,12 @@ def api_debug_jan():
         return jsonify({"subs": subs.data, "logs": logs.data})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/debug/jan2', methods=['GET'])
+def api_debug_jan2():
+    client = db.get_client()
+    try:
+        subs = client.table("email_subscriptions").select("*").eq("email", "jan@zygula.cz").execute()
+        return jsonify({"subs": subs.data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
