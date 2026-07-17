@@ -30,9 +30,11 @@ def compute_file_hash(file_path: str | Path) -> str:
 
 
 def _sanitize_filename(name: str) -> str:
-    """Odstraní nebezpečné znaky z názvu souboru."""
-    name = re.sub(r'[<>:"/\\|?*]', '_', name)
-    name = name.strip('. ')
+    """Odstraní nebezpečné znaky a diakritiku z názvu souboru."""
+    import unicodedata
+    name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('ascii')
+    name = re.sub(r'[^a-zA-Z0-9_.-]', '_', name)
+    name = name.strip('._ ')
     return name or "unnamed"
 
 
