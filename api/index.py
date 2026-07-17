@@ -575,22 +575,3 @@ def api_admin_delete_subscriber(sub_id):
         return jsonify({"status": "ok"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/debug/jan', methods=['GET'])
-def api_debug_jan():
-    client = db.get_client()
-    try:
-        subs = client.table("email_subscriptions").select("*").eq("email", "jan@zygula.cz").execute()
-        logs = client.table("email_logs").select("*").eq("email", "jan@zygula.cz").order("sent_at", desc=True).limit(5).execute()
-        return jsonify({"subs": subs.data, "logs": logs.data})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/debug/jan2', methods=['GET'])
-def api_debug_jan2():
-    client = db.get_client()
-    try:
-        subs = client.table("email_subscriptions").select("*").eq("email", "jan@zygula.cz").execute()
-        return jsonify({"subs": subs.data})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
