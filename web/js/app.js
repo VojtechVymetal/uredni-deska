@@ -395,6 +395,10 @@ function renderDetail(data) {
                 <span class="text-body-sm text-on-surface-variant">Naposledy viděn</span>
                 <span class="font-data-mono text-data-mono text-on-surface">${formatDateTime(doc.last_seen_at)}</span>
             </div>
+            <div class="detail-meta-row col-span-1 md:col-span-2">
+                <span class="text-body-sm text-on-surface-variant">Originální odkaz</span>
+                <a href="https://egov.opava-city.cz/Uredni_deska/DetailDokument.aspx?IdFile=${doc.doc_id}&Por=0" target="_blank" class="font-bold text-primary hover:underline truncate">Otevřít na egov.opava-city.cz <span class="material-symbols-outlined text-[14px] align-middle">open_in_new</span></a>
+            </div>
             ${doc.removed_at ? `<div class="detail-meta-row">
                 <span class="text-body-sm text-on-surface-variant">Odstraněn</span>
                 <span class="font-data-mono text-data-mono text-error">${formatDateTime(doc.removed_at)}</span>
@@ -473,7 +477,15 @@ function renderDetail(data) {
         data.attachments.forEach(att => {
             const ext = (att.file_name || '').split('.').pop().toUpperCase() || '?';
             const isPDF = ext === 'PDF';
-            html += `<div class="flex items-center gap-4 p-3 bg-surface-container-lowest rounded border border-outline-variant/30 hover:border-primary/50 transition-colors group cursor-pointer">
+            const hasVersions = att.versions && att.versions.length > 0;
+            
+            if (hasVersions) {
+                html += `<a href="/api/attachment/${encodeURIComponent(att.doc_id)}/${encodeURIComponent(att.file_name)}" target="_blank" class="flex items-center gap-4 p-3 bg-surface-container-lowest rounded border border-outline-variant/30 hover:border-primary/50 transition-colors group cursor-pointer block">`;
+            } else {
+                html += `<div class="flex items-center gap-4 p-3 bg-surface-container-lowest rounded border border-error/50 opacity-75">`;
+            }
+            
+            html += `
                 <div class="w-10 h-10 ${isPDF ? 'bg-error/20' : 'bg-primary/20'} flex items-center justify-center rounded flex-shrink-0">
                     <span class="material-symbols-outlined ${isPDF ? 'text-error' : 'text-primary'}">picture_as_pdf</span>
                 </div>
@@ -481,13 +493,21 @@ function renderDetail(data) {
                     <p class="text-body-md font-bold text-on-surface truncate">${esc(att.file_name)}</p>
                     <p class="text-label-caps font-label-caps text-on-surface-variant">Verze: v${att.current_version}${att.file_size ? ' · ' + esc(att.file_size) : ''} · ${ext}</p>
                 </div>`;
-            // Download links
-            if (att.versions && att.versions.length > 0) {
-                html += `<a href="/api/attachment/${encodeURIComponent(att.doc_id)}/${encodeURIComponent(att.file_name)}" target="_blank" class="flex-shrink-0" onclick="event.stopPropagation()">
-                    <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">download</span>
+            
+            if (hasVersions) {
+                html += `
+                    <div class="flex-shrink-0">
+                        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">download</span>
+                    </div>
                 </a>`;
+            } else {
+                html += `
+                    <div class="flex-shrink-0 text-error flex items-center gap-1 text-label-caps font-bold">
+                        <span class="material-symbols-outlined text-[16px]">error</span>
+                        Chyba stahování
+                    </div>
+                </div>`;
             }
-            html += '</div>';
         });
         html += '</div></section>';
     }
