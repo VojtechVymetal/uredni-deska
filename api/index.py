@@ -541,3 +541,37 @@ def api_force_analyze():
 
 # API pro Vercel export
 # Není potřeba spouštět app.run() v serverless prostředí, Vercel si vezme app automaticky
+
+def check_admin_auth():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return False
+    token = auth_header.split(' ', 1)[1]
+    expected_password = os.environ.get('ADMIN_PASSWORD')
+    if not expected_password or token != expected_password:
+        return False
+    return True
+
+@app.route('/api/admin/subscribers', methods=['GET'])
+def api_admin_subscribers():
+    if not check_admin_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    client = db.get_client()
+    try:
+        res = client.table("email_subscriptions").select("*").order("created_at", desc=True).execute()
+        return jsonify({"subscribers": res.data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/subscribers/<int:sub_id>', methods=['DELETE'])
+def api_admin_delete_subscriber(sub_id):
+    if not check_admin_auth():
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    client = db.get_client()
+    try:
+        client.table("email_subscriptions").delete().eq("id", sub_id).execute()
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
